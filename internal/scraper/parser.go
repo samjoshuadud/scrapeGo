@@ -20,12 +20,14 @@ func ParseTitles(html string) ([]string, error) {
 
 	// change based on the website's structure, this is just an example
 
-	doc.Find("updates-element h2 a").Each(func(i int, s *goquery.Selection) {
-		title := strings.TrimSpace(s.Text())
-		if title != "" {
+	doc.Find(".updates-element h2 a").Each(func(i int, s *goquery.Selection) {
 
+		title, exists := s.Attr("title")
+
+		if exists {
 			titles = append(titles, title)
 		}
+
 		})
 
 	return titles, err
