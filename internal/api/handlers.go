@@ -38,6 +38,11 @@ func AllManhwasHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	results, err := scraper.ParseTitles(html)
+
+	if err != nil {
+		http.Error(w, "Failed to parse data", http.StatusInternalServerError)
+		return
+	}
 	
 	w.Header().Set("Content-Type", "application/json")
 
