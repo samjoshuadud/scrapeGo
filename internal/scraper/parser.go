@@ -1,35 +1,38 @@
 package scraper
 
 import (
-   "strings"
-	  "github.com/PuerkitoBio/goquery"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/samjoshuadud/scrapeGo/internal/models"
+	"strings"
 )
 
-
-
 // for now, we just parse the titles, but we can expand this to include more details like chapters, cover images, etc. based on the website's structure.
-func ParseTitles(html string) ([]string, error) {
+func ParseTitles(html string) ([]models.Manhwa, error) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 
 	if err != nil {
-		return []string{}, err
+		return []models.Manhwa{}, err
 	}
 
-	titles := make([]string, 0)
+	var manhwas []models.Manhwa
 
-	// change based on the website's structure, this is just an example
+	doc.Find(".updates-element").Each(func(i int, s *goquery.Selection) {
 
-	doc.Find(".updates-element h2 a").Each(func(i int, s *goquery.Selection) {
+		thumb := s.Find(".thumb a")
 
-		title, exists := s.Attr("title")
+		title, _ := thumb.Attr("title")
+		slug, _ := thumb.Attr("href")
+		cover, _ := thumb.Find("img").Attr("src")
 
-		if exists {
-			titles = append(titles, title)
-		}
-
+		manhwas = append(manhwas, models.Manhwa {
+			Title: title,
+			Slug: slug,
+			Cover: cover,
 		})
 
-	return titles, err
+	})
+
+	return manhwas, err
 
 }
