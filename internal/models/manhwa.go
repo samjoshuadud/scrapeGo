@@ -4,6 +4,7 @@ type Manhwa struct {
 	Title string `json:"title"`
 	Slug  string `json:"slug"`
 	Cover string `json:"cover"`
+	Domain string `json:"domain"`
 }
 
 type Chapter struct {

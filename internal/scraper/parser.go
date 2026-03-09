@@ -39,7 +39,8 @@ func ParseTitles(html string, url string) ([]models.Manhwa, error) {
 
 		manhwas = append(manhwas, models.Manhwa {
 			Title: title,
-			Slug: domain + slug,
+			Domain: domain,
+			Slug: slug,
 			Cover: cover,
 		})
 
