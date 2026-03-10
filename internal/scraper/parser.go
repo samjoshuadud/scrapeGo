@@ -7,7 +7,6 @@ import (
 	"regexp"
 )
 
-// for now, we just parse the titles, but we can expand this to include more details like chapters, cover images, etc. based on the website's structure.
 func ParseTitles(html string, url string) ([]models.Manhwa, error) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
