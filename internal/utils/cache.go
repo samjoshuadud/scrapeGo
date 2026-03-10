@@ -25,16 +25,19 @@ func NewCache(ttl time.Duration) *Cache {
 
 // checking if cache still valid
 
-func (c *Cache) Get() ([]models.Manhwa, bool) {
+func (c *Cache) Get() ([]models.Manhwa, bool, bool) {
 	c.RLock()
 
 	defer c.RUnlock()
 
-	if len(c.Data) == 0 || time.Since(c.Timestamp) >= c.Ttl {
-		return nil, false
+	if len(c.Data) == 0{
+		return nil, false, false
 	}
 
-	return c.Data, true
+	
+	expired := time.Since(c.Timestamp) >= c.Ttl
+
+	return c.Data, true, expired
 
 }
 
@@ -44,4 +47,5 @@ func (c *Cache) Set(data []models.Manhwa) {
 	defer c.Unlock()
 	c.Data = data
 	c.Timestamp = time.Now()
+
 }
