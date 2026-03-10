@@ -11,6 +11,7 @@ func ParseTitles(html string, url string) ([]models.Manhwa, error) {
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 
+	// Extract domain from URL
 	re := regexp.MustCompile(`https?://([^/]+)`)
 
 	matches := re.FindStringSubmatch(url)
@@ -21,13 +22,13 @@ func ParseTitles(html string, url string) ([]models.Manhwa, error) {
 		domain = matches[1]
 	}
 
-
 	if err != nil {
 		return []models.Manhwa{}, err
 	}
 
 	var manhwas []models.Manhwa
 
+  // elements for the manhwa cover
 	doc.Find(".updates-element").Each(func(i int, s *goquery.Selection) {
 
 		thumb := s.Find(".thumb a")
