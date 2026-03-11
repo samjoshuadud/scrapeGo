@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/samjoshuadud/scrapeGo/internal/api"
 	"github.com/samjoshuadud/scrapeGo/internal/middleware"
+	"os"
+
 )
 
 func main() {
@@ -24,5 +26,12 @@ func main() {
 	r.HandleFunc("/{slug:manhwa/.*}", api.ManhwaDetailsHandler)
 
 	fmt.Println("Starting Manhwa API on port 8080...")
-	http.ListenAndServe(":8080", r)
+
+	// env variable for port would be better for production, but hardcoding for simplicity
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	http.ListenAndServe(":"+port, r)
 }
