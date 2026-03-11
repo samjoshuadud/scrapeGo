@@ -25,7 +25,6 @@ func main() {
 	r.HandleFunc("/chapter", api.ChapterPagesHandler)
 	r.HandleFunc("/{slug:manhwa/.*}", api.ManhwaDetailsHandler)
 
-	fmt.Println("Starting Manhwa API on port 8080...")
 
 	// env variable for port would be better for production, but hardcoding for simplicity
 
@@ -33,5 +32,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	fmt.Println("Starting Manhwa API on port: "+port)
+
 	http.ListenAndServe(":"+port, r)
 }
