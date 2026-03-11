@@ -58,19 +58,24 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ChapterPagesHandler(w http.ResponseWriter, r *http.Request) {
-	slug := r.URL.Query().Get("slug")
-	
-	// fallback to manga and chapter query parameters for backward compatibility
+	mangaID := r.URL.Query().Get("manga")
+	chapterNum := r.URL.Query().Get("chapter")
+
+	var slug string
+
+	// Primary: use manga and chapter as separate clean params
+	// e.g. /chapter?manga=6&chapter=200.5
+	if mangaID != "" && chapterNum != "" {
+		slug = fmt.Sprintf("/chaptered.php?manga=%s&chapter=%s", mangaID, chapterNum)
+	}
+
+	// Fallback: use slug param (must be URL-encoded by the client)
 	if slug == "" {
-		mangaID := r.URL.Query().Get("manga")
-		chapterNum := r.URL.Query().Get("chapter")
-		if mangaID != "" && chapterNum != "" {
-			slug = fmt.Sprintf("/chaptered.php?manga=%s&chapter=%s", mangaID, chapterNum)
-		}
+		slug = r.URL.Query().Get("slug")
 	}
 
 	if slug == "" {
-		http.Error(w, "Query parameter 'slug' (or 'manga' and 'chapter') is required", http.StatusBadRequest)
+		http.Error(w, "Query parameters 'manga' and 'chapter' are required", http.StatusBadRequest)
 		return
 	}
 

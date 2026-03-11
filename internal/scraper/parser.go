@@ -3,6 +3,7 @@ package scraper
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/samjoshuadud/scrapeGo/internal/models"
+	neturl "net/url"
 	"strings"
 	"regexp"
 )
@@ -145,11 +146,20 @@ func ParseManhwaDetails(html string, url string) (models.ManhwaDetails, error) {
 
 		href, _ := link.Attr("href")
 
+		// Parse manga and chapter from the slug for clean API usage
+		var mangaID, chapterNum string
+		if parsed, err := neturl.Parse(href); err == nil {
+			mangaID = parsed.Query().Get("manga")
+			chapterNum = parsed.Query().Get("chapter")
+		}
+
 		details.Chapters = append(details.Chapters, models.Chapter{
-			Title: title,
-			Slug:  href,
-			Date:  date,
-			URL:   extractDomain(url) + href,
+			Title:      title,
+			Slug:       href,
+			Manga:      mangaID,
+			ChapterNum: chapterNum,
+			Date:       date,
+			URL:        extractDomain(url) + href,
 		})
 	})
 

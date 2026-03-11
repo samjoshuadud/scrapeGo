@@ -8,10 +8,12 @@ type Manhwa struct {
 }
 
 type Chapter struct {
-	Title string `json:"title"`
-	Slug  string `json:"slug"`
-	Date  string `json:"date"`
-	URL   string `json:"url"`
+	Title      string `json:"title"`
+	Slug       string `json:"slug"`
+	Manga      string `json:"manga"`
+	ChapterNum string `json:"chapter_num"`
+	Date       string `json:"date"`
+	URL        string `json:"url"`
 }
 
 type Page struct {
