@@ -23,17 +23,10 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Query parameter 'q' is required", http.StatusBadRequest)
 		return
 	}
-	searchURL := fmt.Sprintf("https://demonicscans.org/search.php?s=%s", query)
 
-	html, err := scraper.FetchPage(searchURL)
+	results, err := scraper.SearchTitles(query)
 	if err != nil {
-		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
-		return
-	}
-
-	results, err := scraper.ParseTitles(html, searchURL)
-	if err != nil {
-		http.Error(w, "Failed to parse data", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to search titles: %v", err), http.StatusInternalServerError)
 		return
 	}
 

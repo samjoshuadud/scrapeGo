@@ -22,3 +22,20 @@ func ScrapeTitles(page int) ([]models.Manhwa, error) {
 
 	return manhwas, nil
 }
+
+func SearchTitles(query string) ([]models.Manhwa, error) {
+	url := fmt.Sprintf("https://demonicscans.org/search.php?manga=%s", query)
+
+	html, err := FetchPage(url)
+	if err != nil {
+		return nil, err
+	}
+
+	manhwas, err := ParseSearchResults(html, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return manhwas, nil
+}
+
