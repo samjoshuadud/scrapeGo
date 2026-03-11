@@ -71,3 +71,45 @@ func (c *Cache) LogState() {
 	}
 	fmt.Printf("---------------------\n\n")
 }
+
+// StringCache is a generic string-keyed cache for any data type
+type StringCacheEntry struct {
+	Data      interface{}
+	Timestamp time.Time
+}
+
+type StringCache struct {
+	sync.RWMutex
+	Items map[string]StringCacheEntry
+	Ttl   time.Duration
+}
+
+func NewStringCache(ttl time.Duration) *StringCache {
+	return &StringCache{
+		Items: make(map[string]StringCacheEntry),
+		Ttl:   ttl,
+	}
+}
+
+func (c *StringCache) Get(key string) (interface{}, bool, bool) {
+	c.RLock()
+	defer c.RUnlock()
+
+	entry, exists := c.Items[key]
+	if !exists {
+		return nil, false, false
+	}
+
+	expired := time.Since(entry.Timestamp) >= c.Ttl
+	return entry.Data, true, expired
+}
+
+func (c *StringCache) Set(key string, data interface{}) {
+	c.Lock()
+	defer c.Unlock()
+
+	c.Items[key] = StringCacheEntry{
+		Data:      data,
+		Timestamp: time.Now(),
+	}
+}

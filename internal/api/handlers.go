@@ -15,7 +15,9 @@ import (
 
 var (
 	// Cache items expire after 15 minutes
-	ManhwaCache = utils.NewCache(15 * time.Minute)
+	ManhwaCache  = utils.NewCache(15 * time.Minute)
+	DetailsCache = utils.NewStringCache(15 * time.Minute)
+	ChapterCache = utils.NewStringCache(15 * time.Minute)
 )
 
 func ManhwaDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,14 +28,29 @@ func ManhwaDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check cache first
+	data, exists, expired := DetailsCache.Get(slug)
+	if exists && !expired {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
 	// we translate the slug back for the scraper
 	siteSlug := strings.Replace(slug, "manhwa/", "manga/", 1)
 
 	details, err := scraper.ScrapeManhwaDetails(siteSlug)
 	if err != nil {
+		if exists {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(data)
+			return
+		}
 		http.Error(w, fmt.Sprintf("Failed to fetch manhwa details: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	DetailsCache.Set(slug, details)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(details)
@@ -63,13 +80,10 @@ func ChapterPagesHandler(w http.ResponseWriter, r *http.Request) {
 
 	var slug string
 
-	// Primary: use manga and chapter as separate clean params
-	// e.g. /chapter?manga=6&chapter=200.5
 	if mangaID != "" && chapterNum != "" {
 		slug = fmt.Sprintf("/chaptered.php?manga=%s&chapter=%s", mangaID, chapterNum)
 	}
 
-	// Fallback: use slug param (must be URL-encoded by the client)
 	if slug == "" {
 		slug = r.URL.Query().Get("slug")
 	}
@@ -79,11 +93,26 @@ func ChapterPagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check cache first
+	data, exists, expired := ChapterCache.Get(slug)
+	if exists && !expired {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
 	pages, err := scraper.ScrapeChapterPages(slug)
 	if err != nil {
+		if exists {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(data)
+			return
+		}
 		http.Error(w, fmt.Sprintf("Failed to fetch chapter pages: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	ChapterCache.Set(slug, pages)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pages)
