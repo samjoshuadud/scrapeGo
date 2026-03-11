@@ -16,8 +16,8 @@ import (
 var (
 	// Cache items expire after 15 minutes
 	ManhwaCache  = utils.NewCache(15 * time.Minute)
-	DetailsCache = utils.NewStringCache(15 * time.Minute)
-	ChapterCache = utils.NewStringCache(15 * time.Minute)
+	DetailsCache = utils.NewStringCache(1 * time.Hour)
+	ChapterCache = utils.NewStringCache(12 * time.Hour)
 )
 
 func ManhwaDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +27,8 @@ func ManhwaDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Slug is required", http.StatusBadRequest)
 		return
 	}
+
+	DetailsCache.LogState("DETAILS", slug)
 
 	// Check cache first
 	data, exists, expired := DetailsCache.Get(slug)
@@ -92,6 +94,8 @@ func ChapterPagesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Query parameters 'manga' and 'chapter' are required", http.StatusBadRequest)
 		return
 	}
+
+	ChapterCache.LogState("CHAPTER", slug)
 
 	// Check cache first
 	data, exists, expired := ChapterCache.Get(slug)

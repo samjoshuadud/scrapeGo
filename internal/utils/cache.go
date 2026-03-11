@@ -113,3 +113,21 @@ func (c *StringCache) Set(key string, data interface{}) {
 		Timestamp: time.Now(),
 	}
 }
+
+func (c *StringCache) LogState(name string, key string) {
+	c.RLock()
+	defer c.RUnlock()
+
+	entry, exists := c.Items[key]
+	if !exists {
+		fmt.Printf("[%s CACHE MISS] %s (not cached)\n", name, key)
+		return
+	}
+
+	status := "FRESH"
+	if time.Since(entry.Timestamp) >= c.Ttl {
+		status = "EXPIRED"
+	}
+	fmt.Printf("[%s CACHE %s] %s (cached at %s)\n",
+		name, status, key, entry.Timestamp.Format("15:04:05"))
+}
