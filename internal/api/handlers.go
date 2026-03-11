@@ -57,6 +57,33 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(results)
 }
 
+func ChapterPagesHandler(w http.ResponseWriter, r *http.Request) {
+	slug := r.URL.Query().Get("slug")
+	
+	// fallback to manga and chapter query parameters for backward compatibility
+	if slug == "" {
+		mangaID := r.URL.Query().Get("manga")
+		chapterNum := r.URL.Query().Get("chapter")
+		if mangaID != "" && chapterNum != "" {
+			slug = fmt.Sprintf("/chaptered.php?manga=%s&chapter=%s", mangaID, chapterNum)
+		}
+	}
+
+	if slug == "" {
+		http.Error(w, "Query parameter 'slug' (or 'manga' and 'chapter') is required", http.StatusBadRequest)
+		return
+	}
+
+	pages, err := scraper.ScrapeChapterPages(slug)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to fetch chapter pages: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pages)
+}
+
 func ManhwasHandler(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.URL.Query().Get("page")
 	page, err := strconv.Atoi(pageStr)

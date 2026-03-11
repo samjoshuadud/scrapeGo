@@ -84,6 +84,34 @@ func ParseSearchResults(html string, url string) ([]models.Manhwa, error) {
 	return manhwas, nil
 }
 
+func ParseChapterPages(html string) ([]models.Page, error) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	if err != nil {
+		return []models.Page{}, err
+	}
+
+	pages := []models.Page{}
+	count := 1
+	doc.Find("img.imgholder").Each(func(i int, s *goquery.Selection) {
+		src, exists := s.Attr("src")
+		if !exists || src == "" {
+			return
+		}
+
+		if strings.Contains(src, "free_ads.jpg") || strings.Contains(src, "PayPal.svg") {
+			return
+		}
+
+		pages = append(pages, models.Page{
+			PageNumber: count,
+			ImageURL:   src,
+		})
+		count++
+	})
+
+	return pages, nil
+}
+
 func ParseManhwaDetails(html string, url string) (models.ManhwaDetails, error) {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {

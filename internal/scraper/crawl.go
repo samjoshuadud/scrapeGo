@@ -54,3 +54,18 @@ func ScrapeManhwaDetails(slug string) (models.ManhwaDetails, error) {
 
 	return ParseManhwaDetails(html, url)
 }
+
+func ScrapeChapterPages(slug string) ([]models.Page, error) {
+	// Ensure slug has leading /
+	if !strings.HasPrefix(slug, "/") {
+		slug = "/" + slug
+	}
+	url := fmt.Sprintf("https://demonicscans.org%s", slug)
+
+	html, err := FetchPage(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseChapterPages(html)
+}

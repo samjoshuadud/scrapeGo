@@ -20,6 +20,7 @@ func main() {
 
 	r.HandleFunc("/search", api.SearchHandler)
 	r.HandleFunc("/manhwas", api.ManhwasHandler)
+	r.HandleFunc("/chapter", api.ChapterPagesHandler)
 	r.HandleFunc("/{slug:manhwa/.*}", api.ManhwaDetailsHandler)
 
 	fmt.Println("Starting Manhwa API on port 8080...")
