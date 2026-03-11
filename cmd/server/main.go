@@ -3,15 +3,18 @@ package main
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/gorilla/mux"
-	"github.com/samjoshuadud/scrapeGo/internal/api"
-	"github.com/samjoshuadud/scrapeGo/internal/middleware"
 	"os"
 
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"github.com/samjoshuadud/scrapeGo/internal/api"
+	"github.com/samjoshuadud/scrapeGo/internal/middleware"
 )
 
 func main() {
+	// Load .env file if it exists
+	godotenv.Load()
+
 	r := mux.NewRouter()
 
 	r.Use(middleware.LoggingMiddleware)
@@ -25,15 +28,11 @@ func main() {
 	r.HandleFunc("/chapter", api.ChapterPagesHandler)
 	r.HandleFunc("/{slug:manhwa/.*}", api.ManhwaDetailsHandler)
 
-
-	// env variable for port would be better for production, but hardcoding for simplicity
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	fmt.Println("Starting Manhwa API on port: "+port)
-
+	fmt.Println("Starting Manhwa API on port: " + port)
 	http.ListenAndServe(":"+port, r)
 }
