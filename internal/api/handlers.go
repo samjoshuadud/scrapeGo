@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/samjoshuadud/scrapeGo/internal/scraper"
 	"github.com/samjoshuadud/scrapeGo/internal/utils"
 )
@@ -15,6 +17,27 @@ var (
 	// Cache items expire after 15 minutes
 	ManhwaCache = utils.NewCache(15 * time.Minute)
 )
+
+func ManhwaDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	slug := vars["slug"]
+	if slug == "" {
+		http.Error(w, "Slug is required", http.StatusBadRequest)
+		return
+	}
+
+	// we translate the slug back for the scraper
+	siteSlug := strings.Replace(slug, "manhwa/", "manga/", 1)
+
+	details, err := scraper.ScrapeManhwaDetails(siteSlug)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to fetch manhwa details: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(details)
+}
 
 // SearchHandler is still a work in progress
 func SearchHandler(w http.ResponseWriter, r *http.Request) {

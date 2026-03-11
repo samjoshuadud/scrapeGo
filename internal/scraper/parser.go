@@ -23,7 +23,7 @@ func ParseTitles(html string, url string) ([]models.Manhwa, error) {
 	}
 
 	domain := extractDomain(url)
-	var manhwas []models.Manhwa
+	manhwas := []models.Manhwa{}
 
 	// elements for the manhwa cover
 	doc.Find(".updates-element").Each(func(i int, s *goquery.Selection) {
@@ -31,6 +31,9 @@ func ParseTitles(html string, url string) ([]models.Manhwa, error) {
 
 		title, _ := thumb.Attr("title")
 		slug, _ := thumb.Attr("href")
+		// Translate slug for our API
+		slug = strings.Replace(slug, "/manga/", "/manhwa/", 1)
+		
 		cover, _ := thumb.Find("img").Attr("src")
 
 		manhwas = append(manhwas, models.Manhwa{
@@ -51,7 +54,7 @@ func ParseSearchResults(html string, url string) ([]models.Manhwa, error) {
 	}
 
 	domain := extractDomain(url)
-	var manhwas []models.Manhwa
+	manhwas := []models.Manhwa{}
 
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		slug, exists := s.Attr("href")
@@ -59,16 +62,68 @@ func ParseSearchResults(html string, url string) ([]models.Manhwa, error) {
 			return
 		}
 
+		// Translate slug for our API
+		apiSlug := strings.Replace(slug, "/manga/", "/manhwa/", 1)
+
+		// The title is in the first div inside the container div
 		title := strings.TrimSpace(s.Find("li div div:first-child").Text())
+		if title == "" {
+			title = strings.TrimSpace(s.Find("li div").First().Text())
+		}
+		
 		cover, _ := s.Find("img").Attr("src")
 
 		manhwas = append(manhwas, models.Manhwa{
 			Title:  title,
 			Domain: domain,
-			Slug:   slug,
+			Slug:   apiSlug,
 			Cover:  cover,
 		})
 	})
 
 	return manhwas, nil
+}
+
+func ParseManhwaDetails(html string, url string) (models.ManhwaDetails, error) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	if err != nil {
+		return models.ManhwaDetails{}, err
+	}
+
+	var details models.ManhwaDetails
+	details.Title = strings.TrimSpace(doc.Find("title").Text())
+	details.Cover, _ = doc.Find("#manga-page img").Attr("src")
+	details.Summary = strings.TrimSpace(doc.Find(".white-font").First().Text())
+
+	doc.Find("#manga-info-stats .flex-row").Each(func(i int, s *goquery.Selection) {
+		label := strings.ToLower(strings.TrimSpace(s.Find("li:first-child").Text()))
+		value := strings.TrimSpace(s.Find("li:last-child").Text())
+
+		switch label {
+		case "author":
+			details.Author = value
+		case "status":
+			details.Status = value
+		}
+	})
+
+	details.Chapters = []models.Chapter{}
+	doc.Find("#chapters-list li").Each(func(i int, s *goquery.Selection) {
+		link := s.Find("a")
+		title := strings.TrimSpace(link.Text())
+
+		date := strings.TrimSpace(link.Find("span").Text())
+		title = strings.TrimSpace(strings.Replace(title, date, "", -1))
+
+		href, _ := link.Attr("href")
+
+		details.Chapters = append(details.Chapters, models.Chapter{
+			Title: title,
+			Slug:  href,
+			Date:  date,
+			URL:   extractDomain(url) + href,
+		})
+	})
+
+	return details, nil
 }

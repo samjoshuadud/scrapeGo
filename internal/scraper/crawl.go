@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"fmt"
+	"strings"
 	"github.com/samjoshuadud/scrapeGo/internal/models"
 )
 
@@ -39,3 +40,17 @@ func SearchTitles(query string) ([]models.Manhwa, error) {
 	return manhwas, nil
 }
 
+func ScrapeManhwaDetails(slug string) (models.ManhwaDetails, error) {
+	// If slug doesn't start with /, add it
+	if !strings.HasPrefix(slug, "/") {
+		slug = "/" + slug
+	}
+	url := fmt.Sprintf("https://demonicscans.org%s", slug)
+
+	html, err := FetchPage(url)
+	if err != nil {
+		return models.ManhwaDetails{}, err
+	}
+
+	return ParseManhwaDetails(html, url)
+}
