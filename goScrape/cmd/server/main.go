@@ -23,10 +23,11 @@ func main() {
 		fmt.Fprintf(w, "Manhwa API Running")
 	})
 
-	r.HandleFunc("/search", api.SearchHandler)
-	r.HandleFunc("/manhwas", api.ManhwasHandler)
-	r.HandleFunc("/chapter", api.ChapterPagesHandler)
-	r.HandleFunc("/{slug:manhwa/.*}", api.ManhwaDetailsHandler)
+	apiRouter := r.PathPrefix("/api").Subrouter()
+	apiRouter.HandleFunc("/search", api.SearchHandler)
+	apiRouter.HandleFunc("/manhwas", api.ManhwasHandler)
+	apiRouter.HandleFunc("/chapter", api.ChapterPagesHandler)
+	apiRouter.HandleFunc("/{slug:manhwa/.*}", api.ManhwaDetailsHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
